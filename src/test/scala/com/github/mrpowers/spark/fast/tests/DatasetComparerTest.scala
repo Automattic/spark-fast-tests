@@ -476,37 +476,6 @@ class DatasetComparerTest extends FreeSpec with DatasetComparer with SparkSessio
 
   }
 
-  "defaultSortDataset" - {
-
-    "sorts a DataFrame by the column names in alphabetical order" in {
-      val sourceDF = spark.createDF(
-        List(
-          (5, "bob"),
-          (1, "phil"),
-          (5, "anne")
-        ),
-        List(
-          ("fun_level", IntegerType, true),
-          ("name", StringType, true)
-        )
-      )
-      val actualDF = defaultSortDataset(sourceDF)
-      val expectedDF = spark.createDF(
-        List(
-          (1, "phil"),
-          (5, "anne"),
-          (5, "bob")
-        ),
-        List(
-          ("fun_level", IntegerType, true),
-          ("name", StringType, true)
-        )
-      )
-      assertSmallDatasetEquality(actualDF, expectedDF)
-    }
-
-  }
-
   "assertApproximateDataFrameEquality" - {
 
     "does nothing if the DataFrames have the same schemas and content" in {

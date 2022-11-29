@@ -5,6 +5,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Dataset, Row}
 import org.apache.spark.sql.functions._
 
+import java.util.Objects
 import scala.reflect.ClassTag
 
 case class DatasetSchemaMismatch(smth: String)  extends Exception(smth)
@@ -94,18 +95,20 @@ Expected DataFrame Row Count: '${expectedCount}'
         throw DatasetContentMismatch(betterContentMismatchMessage(a, e, truncate))
       }
     } else {
-      val a = defaultSortDataset(actualDS).collect()
-      val e = defaultSortDataset(expectedDS).collect()
-      if (!a.sameElements(e)) {
+      val a = actualDS.collect()
+      val e = expectedDS.collect()
+
+      if (a.length != e.length) {
         throw DatasetContentMismatch(betterContentMismatchMessage(a, e, truncate))
       }
-    }
-  }
 
-  def defaultSortDataset[T](ds: Dataset[T]): Dataset[T] = {
-    val colNames = ds.columns
-    val cols     = colNames.map(col)
-    ds.sort(cols: _*)
+      // We compare the elements with Objects.equals
+      a.foreach(i => {
+        if (!e.exists(j => Objects.equals(i, j))) {
+          throw DatasetContentMismatch(betterContentMismatchMessage(a, e, truncate))
+        }
+      })
+    }
   }
 
   def sortPreciseColumns[T](ds: Dataset[T]): Dataset[T] = {
